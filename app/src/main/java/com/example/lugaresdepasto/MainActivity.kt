@@ -48,6 +48,10 @@ import com.example.lugaresdepasto.data.Lugar
 import com.example.lugaresdepasto.data.LugarDatabase
 import com.example.lugaresdepasto.data.LugarRepository
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.runtime.LaunchedEffect
 
 class MainActivity : ComponentActivity() {
 
@@ -84,6 +88,16 @@ fun PantallaPrincipal() {
     ).value
 
     val coroutineScope = rememberCoroutineScope()
+
+    val bringIntoViewRequester = remember {
+        BringIntoViewRequester()
+    }
+
+    LaunchedEffect(lugarSeleccionado.value) {
+        if (lugarSeleccionado.value != null) {
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -225,7 +239,9 @@ fun PantallaPrincipal() {
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Card(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .bringIntoViewRequester(bringIntoViewRequester),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.primaryContainer
                                 )
@@ -379,6 +395,10 @@ fun PantallaPrincipal() {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .clickable {
+                                            lugarSeleccionado.value =
+                                                favorito.nombre to favorito.descripcion
+                                        }
                                         .padding(vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
