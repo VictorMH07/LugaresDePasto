@@ -25,13 +25,29 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.lugaresdepasto.ui.theme.LugaresDePastoTheme
 import com.example.lugaresdepasto.ui.components.MapaPasto
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import com.example.lugaresdepasto.data.Lugar
+import com.example.lugaresdepasto.data.LugarDatabase
+import com.example.lugaresdepasto.data.LugarRepository
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -50,6 +66,24 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PantallaPrincipal() {
+
+    val lugarSeleccionado = remember {
+        mutableStateOf<Pair<String, String>?>(null)
+    }
+
+    val context = LocalContext.current
+
+    val repository = remember {
+        LugarRepository(
+            LugarDatabase.obtenerBaseDatos(context).lugarDao()
+        )
+    }
+
+    val favoritos = repository.favoritos.collectAsState(
+        initial = emptyList()
+    ).value
+
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -147,7 +181,134 @@ fun PantallaPrincipal() {
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        MapaPasto()
+                        MapaPasto(
+                            onLugarSeleccionado = { nombre, descripcion ->
+                                lugarSeleccionado.value = nombre to descripcion
+                            }
+                        )
+
+                        // Ficha informativa del sitio selleccionado
+                        lugarSeleccionado.value?.let { lugar ->
+
+                            val descripcionLugar = when (lugar.first) {
+                                "Plaza de Nariño" ->
+                                    "Es el corazón del centro histórico de Pasto. " +
+                                            "Un espacio emblemático rodeado de edificios históricos, " +
+                                            "comercios y lugares representativos de la ciudad."
+
+                                "Laguna de La Cocha" ->
+                                    "También conocida como lago Guamuez, es uno de los " +
+                                            "principales atractivos naturales de Nariño. " +
+                                            "Se destaca por sus paisajes, aguas tranquilas y gastronomía."
+
+                                "Templo de San Juan Bautista" ->
+                                    "Es uno de los templos históricos más representativos " +
+                                            "de Pasto. Destaca por su arquitectura religiosa y su " +
+                                            "importancia en el patrimonio cultural de la ciudad."
+
+                                "Museo del Carnaval" ->
+                                    "Es un espacio cultural dedicado al Carnaval de Negros " +
+                                            "y Blancos. Allí se pueden conocer las tradiciones, " +
+                                            "carrozas, figuras y expresiones artísticas de esta celebración."
+
+                                else -> lugar.second
+                            }
+
+                            val ubicacionLugar = when (lugar.first) {
+                                "Plaza de Nariño" -> "Centro histórico de Pasto."
+                                "Laguna de La Cocha" -> "Corregimiento de El Encano, Pasto."
+                                "Templo de San Juan Bautista" -> "Centro histórico de Pasto."
+                                "Museo del Carnaval" -> "Centro Cultural Pandiaco, Pasto."
+                                else -> "Pasto, Nariño."
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(
+                                            id = when (lugar.first) {
+                                                "Plaza de Nariño" -> R.drawable.plaza_narino
+                                                "Laguna de La Cocha" -> R.drawable.laguna_cocha
+                                                "Templo de San Juan Bautista" -> R.drawable.templo_san_juan
+                                                "Museo del Carnaval" -> R.drawable.museo_carnaval
+                                                else -> R.drawable.plaza_narino
+                                            }
+                                        ),
+                                        contentDescription = "Fotografía de ${lugar.first}",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp),
+                                        contentScale = ContentScale.Crop
+                                    )
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Text(
+                                        text = "📍 ${lugar.first}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    Text(
+                                        text = descripcionLugar,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Text(
+                                        text = "📍 Ubicación: $ubicacionLugar",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Button(
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                val favoritoExistente = favoritos.find {
+                                                    it.nombre == lugar.first
+                                                }
+
+                                                if (favoritoExistente != null) {
+                                                    repository.eliminarLugar(favoritoExistente)
+                                                } else {
+                                                    repository.guardarLugar(
+                                                        Lugar(
+                                                            nombre = lugar.first,
+                                                            descripcion = descripcionLugar,
+                                                            ubicacion = ubicacionLugar
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = if (favoritos.any { it.nombre == lugar.first }) {
+                                                "★ Quitar de favoritos"
+                                            } else {
+                                                "☆ Guardar en favoritos"
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -167,6 +328,7 @@ fun PantallaPrincipal() {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+
                 // Sección de lugares guardados
                 Text(
                     text = "Mis lugares guardados",
@@ -185,30 +347,69 @@ fun PantallaPrincipal() {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .padding(20.dp)
                     ) {
-                        Text(
-                            text = "⭐",
-                            style = MaterialTheme.typography.titleLarge
-                        )
+                        if (favoritos.isEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "⭐",
+                                    style = MaterialTheme.typography.titleLarge
+                                )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(
-                            text = "Todavía no tienes lugares guardados",
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                                Text(
+                                    text = "Todavía no tienes lugares guardados",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
 
-                        Text(
-                            text = "Agrega tus sitios favoritos y aparecerán aquí.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                                Text(
+                                    text = "Agrega tus sitios favoritos y aparecerán aquí.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        } else {
+                            favoritos.forEach { favorito ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "⭐",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+
+                                    Spacer(modifier = Modifier.width(12.dp))
+
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = favorito.nombre,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+
+                                        Text(
+                                            text = favorito.ubicacion,
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+
+                                HorizontalDivider()
+                            }
+                        }
                     }
                 }
+
 
                 Spacer(modifier = Modifier.height(24.dp))
 
