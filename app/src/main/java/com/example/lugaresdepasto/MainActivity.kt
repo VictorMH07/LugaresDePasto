@@ -52,6 +52,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.runtime.LaunchedEffect
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import android.location.Location
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
+import org.maplibre.android.geometry.LatLng
 
 class MainActivity : ComponentActivity() {
 
@@ -76,6 +86,32 @@ fun PantallaPrincipal() {
     }
 
     val context = LocalContext.current
+
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    val ubicacionUsuario = remember {
+        mutableStateOf<Location?>(null)
+    }
+
+    val permisoUbicacion = remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val solicitarPermisoUbicacion =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { permisos ->
+            permisoUbicacion.value =
+                permisos[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                        permisos[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        }
 
     val repository = remember {
         LugarRepository(
@@ -193,9 +229,56 @@ fun PantallaPrincipal() {
                             style = MaterialTheme.typography.titleMedium
                         )
 
+                        Button(
+                            onClick = {
+                                val tienePermiso =
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.ACCESS_FINE_LOCATION
+                                    ) == PackageManager.PERMISSION_GRANTED ||
+                                            ContextCompat.checkSelfPermission(
+                                                context,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            ) == PackageManager.PERMISSION_GRANTED
+
+                                if (!tienePermiso) {
+                                    solicitarPermisoUbicacion.launch(
+                                        arrayOf(
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION
+                                        )
+                                    )
+                                } else {
+                                    val cancellationToken = CancellationTokenSource()
+
+                                    fusedLocationClient.getCurrentLocation(
+                                        Priority.PRIORITY_HIGH_ACCURACY,
+                                        cancellationToken.token
+                                    ).addOnSuccessListener { location ->
+                                        ubicacionUsuario.value = location
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("📍 Activar mi ubicación")
+                        }
+
+                        ubicacionUsuario.value?.let { ubicacion ->
+                            Text(
+                                text = "Mi ubicación:\n" +
+                                        "Latitud: ${ubicacion.latitude}\n" +
+                                        "Longitud: ${ubicacion.longitude}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(12.dp))
 
                         MapaPasto(
+                            ubicacionUsuario = ubicacionUsuario.value?.let { ubicacion ->
+                                LatLng(ubicacion.latitude, ubicacion.longitude)
+                            },
                             onLugarSeleccionado = { nombre, descripcion ->
                                 lugarSeleccionado.value = nombre to descripcion
                             }

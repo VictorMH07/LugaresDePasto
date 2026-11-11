@@ -19,6 +19,15 @@ import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
 import android.view.MotionEvent
+import androidx.compose.runtime.mutableStateOf
+import org.maplibre.android.annotations.Marker
+import org.maplibre.android.camera.CameraUpdateFactory
+import android.graphics.Color
+import org.maplibre.android.annotations.IconFactory
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
 
 private const val MAP_STYLE_URL =
     "https://tiles.openfreemap.org/styles/liberty"
@@ -26,10 +35,57 @@ private const val MAP_STYLE_URL =
 @Composable
 fun MapaPasto(
     modifier: Modifier = Modifier,
+    ubicacionUsuario: LatLng? = null,
     onLugarSeleccionado: (String, String) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    val iconoUbicacion = remember(context) {
+
+        val bitmap = Bitmap.createBitmap(
+            96,
+            128,
+            Bitmap.Config.ARGB_8888
+        )
+
+        val canvas = Canvas(bitmap)
+
+        val pintura = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.BLUE
+            style = Paint.Style.FILL
+        }
+
+        val pin = Path().apply {
+            moveTo(48f, 124f)
+            cubicTo(40f, 105f, 12f, 76f, 12f, 48f)
+            cubicTo(12f, 28f, 28f, 12f, 48f, 12f)
+            cubicTo(68f, 12f, 84f, 28f, 84f, 48f)
+            cubicTo(84f, 76f, 56f, 105f, 48f, 124f)
+            close()
+        }
+
+        canvas.drawPath(pin, pintura)
+
+        pintura.color = Color.WHITE
+
+        canvas.drawCircle(
+            48f,
+            48f,
+            15f,
+            pintura
+        )
+
+        IconFactory.getInstance(context).fromBitmap(bitmap)
+    }
+
+    val marcadorUbicacion = remember {
+        mutableStateOf<Marker?>(null)
+    }
+
+    val ultimaUbicacion = remember {
+        mutableStateOf<LatLng?>(null)
+    }
 
     val mapView = remember {
         MapLibre.getInstance(context)
@@ -135,11 +191,55 @@ fun MapaPasto(
 
                     // Detectar cuando se selecciona un sitio turístico
                     map.setOnMarkerClickListener { marker ->
-                        onLugarSeleccionado(
-                            marker.title ?: "",
-                            marker.snippet ?: ""
+
+                        if (marker == marcadorUbicacion.value) {
+
+                            map.selectMarker(marker)
+
+                            true
+
+                        } else {
+
+                            onLugarSeleccionado(
+                                marker.title ?: "",
+                                marker.snippet ?: ""
+                            )
+
+                            map.selectMarker(marker)
+
+                            true
+                        }
+                    }
+                }
+            }
+        },
+        update = { mapView ->
+            ubicacionUsuario?.let { ubicacion ->
+
+                if (ultimaUbicacion.value != ubicacion) {
+
+                    mapView.getMapAsync { map ->
+
+                        marcadorUbicacion.value?.let {
+                            map.removeMarker(it)
+                        }
+
+                        marcadorUbicacion.value = map.addMarker(
+                            MarkerOptions()
+                                .position(ubicacion)
+                                .title("Mi ubicación")
+                                .snippet("Esta es mi posición actual")
+                                .icon(iconoUbicacion)
                         )
-                        false
+
+                        ultimaUbicacion.value = ubicacion
+
+                        map.animateCamera(
+                            CameraUpdateFactory.newLatLngZoom(
+                                ubicacion,
+                                14.0
+                            )
+                        )
                     }
                 }
             }
