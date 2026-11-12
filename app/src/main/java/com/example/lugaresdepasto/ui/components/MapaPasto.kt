@@ -28,6 +28,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.Dp
 
 private const val MAP_STYLE_URL =
     "https://tiles.openfreemap.org/styles/liberty"
@@ -40,6 +42,16 @@ fun MapaPasto(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    val configuracion = LocalConfiguration.current
+
+    val alturaMapa = if (
+        configuracion.screenWidthDp > configuracion.screenHeightDp
+    ) {
+        280.dp
+    } else {
+        190.dp
+    }
 
     val iconoUbicacion = remember(context) {
 
@@ -220,7 +232,7 @@ fun MapaPasto(
 
                     mapView.getMapAsync { map ->
 
-                        marcadorUbicacion.value?.let {
+                        marcadorUbicacion.value?.let  {
                             map.removeMarker(it)
                         }
 
@@ -246,6 +258,6 @@ fun MapaPasto(
         },
         modifier = modifier
             .fillMaxWidth()
-            .height(190.dp)
+            .height(alturaMapa)
     )
 }

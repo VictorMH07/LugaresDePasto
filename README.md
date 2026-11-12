@@ -14,12 +14,30 @@ También cuenta con un sistema de favoritos para guardar los lugares de interés
 
 - **Mapa interactivo:** visualización de lugares turísticos mediante MapLibre.
 - **Marcadores turísticos:** selección de diferentes sitios de interés en el mapa.
-- **Fichas informativas:** fotografías, nombres y descripciones de los lugares.
-- **Sistema de favoritos:** posibilidad de guardar y consultar lugares favoritos.
+- **Fichas informativas:** fotografías, nombres, descripciones y ubicaciones de los lugares.
+- **Sistema de favoritos:** posibilidad de guardar, consultar y quitar lugares favoritos.
 - **Almacenamiento local:** persistencia de favoritos mediante Room.
 - **Ubicación del usuario:** obtención de las coordenadas actuales del dispositivo.
 - **Marcador personalizado:** pin azul para diferenciar la ubicación del usuario de los lugares turísticos.
-- **Ventanas informativas:** visualización de información al seleccionar los marcadores.
+- **Conservación de ubicación:** las coordenadas y el marcador del usuario se mantienen al cambiar la orientación de la pantalla.
+- **Diseño adaptable:** interfaz compatible con orientación vertical y horizontal.
+- **Funcionamiento sin conexión:** consulta de fotografías, fichas informativas y favoritos almacenados localmente sin necesidad de Internet.
+- **Mapa en caché:** posibilidad de visualizar zonas cartográficas previamente almacenadas en caché cuando no hay conexión a Internet.
+
+## Funcionamiento sin conexión a Internet
+
+La aplicación incorpora almacenamiento local mediante Room, lo que permite guardar y consultar los lugares favoritos sin depender de una conexión a Internet.
+
+Las fotografías de los sitios turísticos se encuentran dentro de los recursos de la aplicación, por lo que pueden visualizarse sin conexión.
+
+El mapa utiliza MapLibre y el estilo cartográfico de OpenFreeMap. Las zonas que ya se han cargado y cuyos datos permanecen en caché pueden seguir visualizándose sin Internet. Sin embargo, para consultar zonas nuevas o descargar actualizaciones cartográficas es necesaria una conexión.
+
+## Adaptación de pantalla
+
+La interfaz se adapta a las orientaciones vertical y horizontal del dispositivo. La altura del mapa cambia según el espacio disponible para facilitar su visualización.
+
+Además, las coordenadas de la ubicación del usuario se conservan durante los cambios de orientación mediante el mecanismo de restauración de estado de Jetpack Compose.
+
 
 ## Tecnologías utilizadas
 

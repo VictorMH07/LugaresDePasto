@@ -62,6 +62,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import org.maplibre.android.geometry.LatLng
+import androidx.compose.runtime.saveable.rememberSaveable
 
 class MainActivity : ComponentActivity() {
 
@@ -91,8 +92,12 @@ fun PantallaPrincipal() {
         LocationServices.getFusedLocationProviderClient(context)
     }
 
-    val ubicacionUsuario = remember {
-        mutableStateOf<Location?>(null)
+    val latitudUsuario = rememberSaveable {
+        mutableStateOf<Double?>(null)
+    }
+
+    val longitudUsuario = rememberSaveable {
+        mutableStateOf<Double?>(null)
     }
 
     val permisoUbicacion = remember {
@@ -255,7 +260,10 @@ fun PantallaPrincipal() {
                                         Priority.PRIORITY_HIGH_ACCURACY,
                                         cancellationToken.token
                                     ).addOnSuccessListener { location ->
-                                        ubicacionUsuario.value = location
+                                        if (location != null) {
+                                            latitudUsuario.value = location.latitude
+                                            longitudUsuario.value = location.longitude
+                                        }
                                     }
                                 }
                             },
@@ -264,11 +272,14 @@ fun PantallaPrincipal() {
                             Text("📍 Activar mi ubicación")
                         }
 
-                        ubicacionUsuario.value?.let { ubicacion ->
+                        if (
+                            latitudUsuario.value != null &&
+                            longitudUsuario.value != null
+                        ) {
                             Text(
                                 text = "Mi ubicación:\n" +
-                                        "Latitud: ${ubicacion.latitude}\n" +
-                                        "Longitud: ${ubicacion.longitude}",
+                                        "Latitud: ${latitudUsuario.value}\n" +
+                                        "Longitud: ${longitudUsuario.value}",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -276,8 +287,10 @@ fun PantallaPrincipal() {
                         Spacer(modifier = Modifier.height(12.dp))
 
                         MapaPasto(
-                            ubicacionUsuario = ubicacionUsuario.value?.let { ubicacion ->
-                                LatLng(ubicacion.latitude, ubicacion.longitude)
+                            ubicacionUsuario = latitudUsuario.value?.let { latitud ->
+                                longitudUsuario.value?.let { longitud ->
+                                    LatLng(latitud, longitud)
+                                }
                             },
                             onLugarSeleccionado = { nombre, descripcion ->
                                 lugarSeleccionado.value = nombre to descripcion
@@ -411,17 +424,8 @@ fun PantallaPrincipal() {
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Text(
-                            text = "📍 Mi ubicación",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelLarge
-                        )
 
-                        Text(
-                            text = "La ubicación del dispositivo estará disponible próximamente.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+
                     }
                 }
 
