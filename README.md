@@ -1,157 +1,107 @@
 # LugaresDePasto
 
-Aplicación móvil Android desarrollada en Kotlin que permite explorar lugares turísticos del municipio de Pasto, Nariño, mediante un mapa interactivo. Los usuarios pueden consultar información de diferentes sitios turísticos, visualizar fotografías, guardar sus lugares favoritos y conocer su ubicación actual.
+App Android en Kotlin para explorar algunos lugares turísticos de Pasto, Nariño. Muestra un mapa con cuatro sitios de interés, una ficha con foto y descripción de cada uno, la ubicación actual del usuario y una lista de favoritos que se guarda en el teléfono.
 
-## Descripción del proyecto
+Es un trabajo académico de la asignatura Desarrollo de aplicaciones para dispositivos móviles. Sirve para practicar integración de mapas, permisos, geolocalización y persistencia local.
 
-**LugaresDePasto** nace como una iniciativa para facilitar el reconocimiento y la consulta de algunos atractivos turísticos de Pasto mediante una aplicación móvil intuitiva.
+## Qué hace
 
-La aplicación integra un mapa interactivo donde se muestran diferentes sitios de interés turístico. Cada marcador permite consultar información del lugar y acceder a una ficha con fotografía, descripción y ubicación.
+- Muestra un mapa de la región de Pasto con cuatro marcadores.
+- Al tocar un marcador abre una ficha con foto, descripción y ubicación del lugar.
+- Permite guardar un lugar como favorito y quitarlo. Los favoritos quedan en una base de datos local (Room) y siguen ahí al cerrar la app.
+- El botón de ubicación pide el permiso en tiempo de ejecución y, si se concede, dibuja un pin azul con la posición del usuario y muestra sus coordenadas.
+- La interfaz funciona en vertical y en horizontal. Las coordenadas del usuario se conservan al rotar la pantalla.
 
-También cuenta con un sistema de favoritos para guardar los lugares de interés y una funcionalidad de geolocalización que permite identificar la posición actual del usuario.
+## Lugares incluidos
 
-## Funcionalidades principales
+1. Plaza de Nariño, centro histórico de Pasto.
+2. Laguna de La Cocha, en el corregimiento de El Encano.
+3. Templo de San Juan Bautista, patrimonio histórico y religioso.
+4. Museo del Carnaval, dedicado al Carnaval de Negros y Blancos.
 
-- **Mapa interactivo:** visualización de lugares turísticos mediante MapLibre.
-- **Marcadores turísticos:** selección de diferentes sitios de interés en el mapa.
-- **Fichas informativas:** fotografías, nombres, descripciones y ubicaciones de los lugares.
-- **Sistema de favoritos:** posibilidad de guardar, consultar y quitar lugares favoritos.
-- **Almacenamiento local:** persistencia de favoritos mediante Room.
-- **Ubicación del usuario:** obtención de las coordenadas actuales del dispositivo.
-- **Marcador personalizado:** pin azul para diferenciar la ubicación del usuario de los lugares turísticos.
-- **Conservación de ubicación:** las coordenadas y el marcador del usuario se mantienen al cambiar la orientación de la pantalla.
-- **Diseño adaptable:** interfaz compatible con orientación vertical y horizontal.
-- **Funcionamiento sin conexión:** consulta de fotografías, fichas informativas y favoritos almacenados localmente sin necesidad de Internet.
-- **Mapa en caché:** posibilidad de visualizar zonas cartográficas previamente almacenadas en caché cuando no hay conexión a Internet.
+## Conexión a internet
 
-## Funcionamiento sin conexión a Internet
+- La **primera vez** que se abre la app hace falta conexión. Sin ella no cargan el mapa ni los marcadores.
+- Después, las zonas del mapa que ya se vieron quedan en la caché de MapLibre y se pueden volver a ver sin conexión.
+- Las fotos están dentro de la app y los favoritos en la base de datos local, así que las fichas de los lugares guardados se abren sin internet.
+- Para ver zonas nuevas del mapa sí hace falta conexión.
 
-La aplicación incorpora almacenamiento local mediante Room, lo que permite guardar y consultar los lugares favoritos sin depender de una conexión a Internet.
+## No necesita API key
 
-Las fotografías de los sitios turísticos se encuentran dentro de los recursos de la aplicación, por lo que pueden visualizarse sin conexión.
+El mapa usa MapLibre con el estilo Liberty de OpenFreeMap, que no pide clave ni cuenta de facturación. Quien clone el repositorio no tiene que configurar ningún secreto para ejecutarlo.
 
-El mapa utiliza MapLibre y el estilo cartográfico de OpenFreeMap. Las zonas que ya se han cargado y cuyos datos permanecen en caché pueden seguir visualizándose sin Internet. Sin embargo, para consultar zonas nuevas o descargar actualizaciones cartográficas es necesaria una conexión.
+## Tecnologías
 
-## Adaptación de pantalla
+| Tecnología                    | Para qué se usa             |
+|:------------------------------|:----------------------------|
+| Kotlin                        | Lenguaje principal          |
+| Jetpack Compose y Material 3  | Interfaz                    |
+| MapLibre Native               | Mapa interactivo            |
+| OpenFreeMap                   | Estilo y mosaicos del mapa  |
+| Room (SQLite)                 | Favoritos en el dispositivo |
+| Google Play Services Location | Ubicación del dispositivo   |
+| Gradle                        | Dependencias y compilación  |
 
-La interfaz se adapta a las orientaciones vertical y horizontal del dispositivo. La altura del mapa cambia según el espacio disponible para facilitar su visualización.
+Configuración del proyecto: `minSdk` 24, `compileSdk` y `targetSdk` 37.
 
-Además, las coordenadas de la ubicación del usuario se conservan durante los cambios de orientación mediante el mecanismo de restauración de estado de Jetpack Compose.
-
-
-## Tecnologías utilizadas
-
-| Tecnología | Descripción |
-|---|---|
-| Kotlin | Lenguaje de programación principal. |
-| Jetpack Compose | Desarrollo de interfaces de usuario. |
-| Material Design 3 | Componentes y diseño visual. |
-| MapLibre | Integración del mapa interactivo. |
-| OpenFreeMap | Proveedor del estilo cartográfico utilizado. |
-| Room | Persistencia de datos locales. |
-| SQLite | Base de datos local utilizada por Room. |
-| Google Play Services Location | Obtención de la ubicación del dispositivo. |
-| Gradle | Gestión de dependencias y compilación. |
-| Android Studio | Entorno de desarrollo. |
-| Git y GitHub | Control de versiones y alojamiento del código. |
-
-## Lugares turísticos incluidos
-
-La aplicación cuenta con los siguientes lugares:
-
-1. **Plaza de Nariño:** centro histórico de la ciudad de Pasto.
-2. **Laguna de La Cocha:** atractivo turístico ubicado en el corregimiento de El Encano.
-3. **Templo de San Juan Bautista:** patrimonio histórico y religioso de Pasto.
-4. **Museo del Carnaval:** espacio cultural dedicado a la tradición del Carnaval de Negros y Blancos.
-
-## Estructura general del proyecto
+## Estructura
 
 ```text
 LugaresDePasto/
-│
-├── app/
-│   └── src/
-│       └── main/
-│           ├── java/com/example/lugaresdepasto/
-│           │   ├── data/
-│           │   │   ├── Lugar.kt
-│           │   │   ├── LugarDao.kt
-│           │   │   ├── LugarDatabase.kt
-│           │   │   └── LugarRepository.kt
-│           │   │
-│           │   ├── ui/
-│           │   │   ├── components/
-│           │   │   │   └── MapaPasto.kt
-│           │   │   └── theme/
-│           │   │
-│           │   └── MainActivity.kt
-│           │
-│           └── res/
-│               └── drawable-nodpi/
-│                   ├── plaza_narino.jpg
-│                   ├── laguna_cocha.jpg
-│                   ├── templo_san_juan.jpg
-│                   └── museo_carnaval.jpg
-│
-├── gradle/
+├── app/src/main/
+│   ├── java/com/example/lugaresdepasto/
+│   │   ├── MainActivity.kt          pantalla principal
+│   │   ├── data/                    Lugar, LugarDao, LugarDatabase, LugarRepository
+│   │   └── ui/
+│   │       ├── components/          MapaPasto.kt
+│   │       └── theme/
+│   ├── res/drawable-nodpi/          fotos de los lugares
+│   └── AndroidManifest.xml
+├── gradle/libs.versions.toml        versiones de las dependencias
 ├── build.gradle.kts
 ├── settings.gradle.kts
 └── README.md
 ```
 
-## Requisitos
+## Cómo ejecutarlo
 
-Para ejecutar el proyecto se recomienda contar con:
+Necesitas Android Studio, el SDK de Android y un emulador o un teléfono con depuración USB.
 
-- Android Studio.
-- JDK compatible con la configuración del proyecto.
-- Android SDK configurado.
-- Gradle y sus dependencias descargadas mediante la sincronización del proyecto.
-- Emulador Android o dispositivo físico compatible.
+1. Clona el repositorio:
 
-## Instalación y ejecución
+   ```bash
+   git clone https://github.com/VictorMH07/LugaresDePasto.git
+   ```
 
-1. Clonar el repositorio:
+2. Abre la carpeta `LugaresDePasto` desde Android Studio (Open).
+3. Espera a que Gradle termine de sincronizar.
+4. Elige el emulador o el teléfono y pulsa Run.
 
-```bash
-git clone https://github.com/VictorMH07/LugaresDePasto.git
-```
+## Permisos y privacidad
 
-2. Abrir Android Studio.
-3. Seleccionar **Open** y buscar la carpeta `LugaresDePasto`.
-4. Esperar a que Gradle sincronice las dependencias.
-5. Seleccionar un emulador Android o conectar un dispositivo físico.
-6. Ejecutar la aplicación mediante el botón **Run** de Android Studio.
+La app declara `INTERNET`, `ACCESS_FINE_LOCATION` y `ACCESS_COARSE_LOCATION`.
 
-## Permisos de ubicación
+El permiso de ubicación se pide cuando el usuario toca el botón de ubicación. Si lo niega, la app no se cierra: el mapa, las fichas y los favoritos siguen funcionando, pero no se muestra la posición del usuario.
 
-La aplicación utiliza los siguientes permisos:
+La ubicación solo se muestra en pantalla. No se guarda ni se envía a ningún servidor propio. Lo único que se guarda en el teléfono son los lugares favoritos. Para dibujar el mapa, la app descarga mosaicos de los servidores de OpenFreeMap, que es un servicio de terceros.
 
-- `ACCESS_FINE_LOCATION`: permite solicitar ubicación precisa.
-- `ACCESS_COARSE_LOCATION`: permite solicitar ubicación aproximada.
+## Fuentes y licencias
 
-El usuario debe conceder los permisos desde el sistema Android para utilizar la funcionalidad de ubicación.
+- Datos del mapa: © colaboradores de OpenStreetMap. Mosaicos y estilo: OpenFreeMap. La atribución se mantiene visible en el mapa.
+- Fotos de los lugares:
+- plaza_narino.jpg: Carlos A. Revelo. Licencia: https://web.archive.org/web/20161028183047/http://www.panoramio.com/photo/90880650
+- laguna_cocha.jpg: Licencia: https://commons.wikimedia.org/wiki/File:La_Cocha,_Nari%C3%B1o.jpg
+- templo_san_juan.jpg: Información Turistica de Nariño, vía Wikimedia Commons. Licencia: https://situr.narino.gov.co/
+- museo_carnaval.jpg: Licencia: https://commons.wikimedia.org/wiki/File:Museo_del_Carnaval,_Pasto.jpg
 
-## Almacenamiento de favoritos
+## Limitaciones conocidas
 
-El proyecto utiliza Room para administrar una base de datos local.
-
-La información de los lugares guardados como favoritos se almacena en el dispositivo, permitiendo consultar los favoritos sin necesidad de mantener una conexión a Internet para acceder a esos registros.
-
-## Objetivo académico
-
-Este proyecto tiene como finalidad aplicar conocimientos de desarrollo de aplicaciones móviles Android, integración de mapas, manejo de permisos, geolocalización, diseño de interfaces y persistencia de información local.
-
-Además, busca ofrecer una herramienta que facilite el reconocimiento de algunos lugares turísticos del municipio de Pasto.
+- Los cuatro lugares son fijos. La app no permite crear marcadores nuevos.
+- El estado de la pantalla vive en el composable principal; no hay ViewModel.
+- Sin conexión en el primer uso, el mapa y los marcadores no cargan y la app no muestra ningún aviso.
+- Si se niega el permiso de ubicación, no se le explica al usuario por qué no aparece su posición.
+- Al rotar la pantalla se cierra la ficha que estaba abierta.
 
 ## Autor
 
-**VictorMH07**
-
-GitHub: [https://github.com/VictorMH07](https://github.com/VictorMH07)
-
-Repositorio: [LugaresDePasto](https://github.com/VictorMH07/LugaresDePasto)
-
----
-
-Desarrollado con Kotlin y Jetpack Compose.
+Victor Manuel Hernandez Cepeda ([VictorMH07](https://github.com/VictorMH07)).
